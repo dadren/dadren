@@ -1,6 +1,6 @@
 ## Overview
 ## ========
-## An **Atlas**, like a Texture, represents raw image data in GPU memory. However, an Atlas also has an associated two-dimensional "partition size" which must evenly partition the underlying texture. Instead of blitting the entire texture, specific sub-regions can be draw by referencing them by a numerical index. The indexes are assigned left-to-right and top-to-bottom:
+## An **Atlas**, like a Texture, represents raw image data in GPU memory. However, an Atlas also has an associated two-dimensional "partition size" which must evenly partition the underlying texture. Instead of blitting the entire texture, specific sub-regions can be drawn by referencing them numerically. The indexes are assigned left-to-right and top-to-bottom:
 
 ## **Example sub-region layouts**
 ##
@@ -29,9 +29,9 @@ import tables
 
 from sdl2 import WindowPtr, RendererPtr
 
+from ./exceptions import InvalidResourceError, NoSuchResourceError
 from ./packs import loadPack
 from ./textures import Texture, TextureManager, newTextureManager, load, render
-from ./exceptions import InvalidResourceError, NoSuchResourceError
 from ./utils import Size
 
 type
@@ -47,8 +47,8 @@ type
   Atlas* = ref object
     ## Used for rendering sub-regions of a Texture
     info*: AtlasInfo ## meta-data describing the Atlas
-    width: int ## Atlas width in sub-regions
-    height: int ## Atlas height in sub-regions
+    width*: int ## Atlas width in sub-regions
+    height*: int ## Atlas height in sub-regions
     texture*: Texture ## Texture underlying the Atlas
 
   AtlasManager* = ref object
@@ -61,20 +61,44 @@ proc newAtlasManager*(window: WindowPtr, display: RendererPtr): AtlasManager =
   result.textures = newTextureManager(window, display)
   result.registry = initTable[string, Atlas]()
 
-proc validateTileSize(texture: Texture, width, height: int) =
+proc isRegionSizeValid(total_width, total_height, width, height: int): bool =
   # ensure the tile_size evenly divides into the Texture
-  if (texture.size.w %% width != 0 or
-      texture.size.h %% height != 0):
-    let msg = "Atlas partition dimensions are incompatible with texture `$1`."
+  total_width %% width == 0 and total_height %% height == 0
+
+proc checkRegionSize(texture: Texture, width, height: int) =
+  if not isRegionSizeValid(texture.width, texture.height, width, height):
+    let msg = "Atlas' region size is incompatible with texture size of `$1`."
     raise newException(InvalidResourceError, msg.format(texture.info.filename))
+
+proc calculateAtlasSize(total_width, total_height,
+                        region_width, region_height: int): Size =
+  result.w = total_width /% region_width
+  result.h = total_height /% region_height
+
+proc calculateAtlasSize(texture: Texture, region_width, region_height: int): Size =
+  calculateAtlasSize(texture.width, texture.height, region_width, region_height)
+
+proc calculateRegionPosition(index, atlas_width: int): tuple[x, y: int] =
+  if atlas_width == 0:
+    let msg = "cannot calculate with width of 0"
+    raise newException(DivByZeroError, msg)
+
+  (index %% atlas_width, index /% atlas_width)
+
+proc calculateRegionPosition(atlas: Atlas, index: int): tuple[x, y: int] =
+  calculateRegionPosition(index, atlas.width)
+
+proc calculatePixelPosition(region_x, region_y,
+                             region_width, region_height): tuple[x, y: int] =
+  (x: region_x *% region_width, y: region_y *% region_height)
 
 proc load*(am: AtlasManager,
            name, filename: string,
            width, height: int,
            description: string = nil,
            authors: seq[string] = nil): Atlas =
-  ## Load an image resource from disk partitioned into sub-regions of t_width and
-  ## t_height. Once loaded sub-regions may be rendered by index. The Atlas can be
+  ## Load an image resource from disk partitioned into sub-regions of width and
+  ## height. Once loaded sub-regions may be rendered by index. The Atlas can be
   ## retrieved from the AtlasManager using the provided name.
   if am.registry.hasKey(name):
     return am.registry[name]
@@ -86,8 +110,9 @@ proc load*(am: AtlasManager,
                      description:description,
                      authors: authors)
 
-  texture.validateTileSize(width, height)
-  result = Atlas(info:info, texture:texture)
+  texture.checkRegionSize(width, height)
+  let atlas_size = texture.calculateAtlasSize(width, height)
+  result = Atlas(info:info, texture:texture, width:atlas_size.w, height:atlas_size.h)
   am.registry[name] = result
 
 proc loadPack*(am: AtlasManager, filename: string) =
@@ -116,30 +141,11 @@ proc get*(am: AtlasManager, name: string): Atlas =
     raise newException(NoSuchResourceError, msg)
   am.registry[name]
 
-proc calculateAtlasSize(total_width, total_height,
-                        region_width, region_height: int): Size =
-  result.w = total_width /% region_width
-  result.h = total_height /% region_height
-
-proc calculateRegionPosition*(index,
-                              total_width, total_height,
-                              region_width, region_height: int): tuple[x, y: int] =
-  ## Return the region position of indexed sub-region `n`
-  let atlas_size = calculateAtlasSize(total_width, total_height,
-                                      region_width, region_height)
-  ((if index > 0: index %% atlas_size.w else: 0),
-   (if index > 0: index /% atlas_size.h else: 0))
-
-proc calculatePixelPosition*(region_x, region_y,
-                             region_width, region_height): tuple[x, y: int] =
-  (x: region_x *% region_width, y: region_y *% region_height)
-
 proc render*(display: RendererPtr, atlas: Atlas, rx, ry, dx, dy: int) =
   ## Render the sub-region rx, ry of atlas to the destination dx, dy of display
   let pixel_pos = calculatePixelPosition(rx, ry,
                                               atlas.info.width,
                                               atlas.info.height)
-
   display.render(atlas.texture,
                  pixel_pos.x,
                  pixel_pos.y,
@@ -149,8 +155,5 @@ proc render*(display: RendererPtr, atlas: Atlas, rx, ry, dx, dy: int) =
 
 proc render*(display: RendererPtr, atlas: Atlas, n, dx, dy: int) =
   ## Render the indexed sub-region n of atlas to the destination dx, dy of display
-  let
-    texture_sz = atlas.texture.size
-    (tx, ty) = calculateRegionPosition(
-      n, texture_sz.w, texture_sz.h, atlas.info.width, atlas.info.height)
+  let (tx, ty) = atlas.calculateRegionPosition(n)
   display.render(atlas, tx, ty, dx, dy)

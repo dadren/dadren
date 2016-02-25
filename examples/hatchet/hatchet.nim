@@ -140,11 +140,6 @@ type
     camera: Camera[GameTile]
     entities: EntityManager
 
-proc newGameTile(terrain: Entity, objects: seq[Entity] = @[]): GameTile =
-  new(result)
-  result.terrain = terrain
-  result.objects = objects
-
 method tile_name*(self: GameTile): string =
   if self.objects.len == 0:
     return self.terrain.icon.rune
@@ -214,7 +209,6 @@ proc newGameScene(app: App): GameScene =
   result.camera = newCamera[GameTile](camera_position, camera_size, tileset)
   result.camera.attach(result.tilemap)
 
-converter scancode2uint8(x: Scancode): cint = cint(x)
 converter uint82bool(x: uint8):bool  = bool(x)
 
 method update(self: GameScene, t, dt: float) =
@@ -229,13 +223,13 @@ method update(self: GameScene, t, dt: float) =
   elif keys[SDL_SCANCODE_DOWN.cint]:
     self.camera.move(0, 1)
 
-proc handle_key(gs: GameScene, keysym: KeySym) =
-  case keysym.sym:
-    of K_LEFT: gs.camera.move(-1, 0)
-    of K_RIGHT: gs.camera.move(1, 0)
-    of K_UP: gs.camera.move(0, -1)
-    of K_DOwN: gs.camera.move(0, 1)
-    else: discard
+# proc handle_key(gs: GameScene, keysym: KeySym) =
+#   case keysym.sym:
+#     of K_LEFT: gs.camera.move(-1, 0)
+#     of K_RIGHT: gs.camera.move(1, 0)
+#     of K_UP: gs.camera.move(0, -1)
+#     of K_DOwN: gs.camera.move(0, 1)
+#     else: discard
 
 # method handle(self: GameScene, event: Event) =
 #   case event.kind:

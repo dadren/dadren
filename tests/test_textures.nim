@@ -2,6 +2,8 @@ import unittest
 
 include ../dadren/textures
 
+echo "textures.nim"
+
 suite "textures.nim":
   setup:
     let

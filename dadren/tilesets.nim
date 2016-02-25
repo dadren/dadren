@@ -2,18 +2,18 @@
 ## ========
 ## A **Tileset** acts as a single registry for accessing tiles by name across two or more NamedAtlases. All included NamedAtlases must have the same partition dimensions. As they are loaded, tiles will overwrite any existing tiles with the same name.
 
-import os
-import tables
-import marshal
 import json
+import marshal
+import os
 import strutils
+import tables
 
 import sdl2
 
-import ./exceptions
-import ./namedatlases
-import ./packs
-import ./utils
+from ./exceptions import NoSuchResourceError
+from ./namedatlases import NamedAtlas, NamedAtlasManager
+from ./namedatlases import newNamedAtlasManager, load, render
+from ./packs import loadPack
 
 type
   AtlasTable = Table[string, NamedAtlas]

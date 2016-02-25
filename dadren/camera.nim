@@ -54,8 +54,8 @@ proc render*[T](camera: Camera[T], display: RendererPtr) =
   for x in 0..camera.maxWidth:
     sx = px + (x * tw) # horizontal screen position
     for y in 0..camera.maxHeight:
+      sy = py + (y * th) # vertical screen position
       let
-        sy = py + (y * th) # vertical screen position
         tile = camera.map.getTile(fx + x, fy + y) # tile object from map
         name = tile.tile_name # tile name from tileset
       display.render(camera.tileset, tile.tile_name, sx, sy)

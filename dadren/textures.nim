@@ -50,7 +50,8 @@ type
   Texture* = ref object
     ## Used for rendering image data
     info*: TextureInfo ## meta-data describing the Texture
-    size*: Size ## the dimensions of the Texture
+    width*: int ## width of the Texture in pixels
+    height*: int ## height of the Texture in pixels
     handle: TexturePtr ## Pointer to actual Texture
 
   TextureManager* = ref object
@@ -58,11 +59,6 @@ type
     window: WindowPtr ## window for loading image files
     display: RendererPtr ## display for rendering Textures
     registry: Table[string, Texture] ## Loaded Textures by name
-
-proc newTexture(info: TextureInfo, handle: TexturePtr): Texture =
-  new(result)
-  result.info = info
-  result.handle = handle
 
 proc destroy(texture: Texture) =
   texture.handle.destroy
@@ -104,11 +100,13 @@ proc load*(tm: TextureManager,
 
   let
     surface = tm.window.loadSurface(filename)
-    size: Size = (surface.w.int, surface.h.int)
     info = TextureInfo(
       name:name, filename:filename, description:description, authors:authors)
     handle = tm.display.loadTexture(surface)
-  result = Texture(info:info, handle:handle, size:size)
+  result = Texture(info:info,
+                   handle:handle,
+                   width: surface.w.int,
+                   height: surface.h.int)
   tm.registry[name] = result
 
 proc loadPack*(tm: TextureManager, filename: string) =
@@ -143,8 +141,8 @@ proc render*(display: RendererPtr, texture: Texture, x, y: int) =
   ## Blit the entire Texture to the target renderer as the specifed coordinates.
   var dst: sdl2.Rect = (x.cint,
                         y.cint,
-                        texture.size.w.cint,
-                        texture.size.h.cint)
+                        texture.width.cint,
+                        texture.height.cint)
   display.copy(texture.handle, cast[ptr sdl2.Rect](nil), dst.addr)
 
 proc render*(display: RendererPtr, texture: Texture,
