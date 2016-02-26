@@ -243,17 +243,17 @@ proc load*(em: var $1, filename: string) =
     json_objs = parseJson(json_data)
   em.load(json_objs)
 
-iterator items*(em: $1): Entity =
+iterator items*(em: $1): $2 =
   for id in em.entities:
     yield em.get(id)
 
-proc create*(em: var $1): Entity =
+proc create*(em: var $1): $2 =
   em.last_id += 1
   result.id = em.last_id
   result.manager = em
   em.entities.add(result.id)
 
-""".format(to_manager_name(name)))
+""".format(to_manager_name(name), name))
 
 proc generate_contains_enum(name: string,
                             components: seq[string]): NimNode {.compileTime.} =
