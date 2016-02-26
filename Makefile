@@ -15,4 +15,7 @@ deploy:
 	cd gh_pages && git add ./* && git commit -am "Automatic commit"
 	cd gh_pages && git push --force origin master
 
-.PHONY: docs deploy
+tests:
+	find tests -name 'test_*.nim' -exec nim --verbosity:0 --hints:off --warnings:off c -r {} \;
+	find tests -type f ! -name 'test_*.nim' -delete
+.PHONY: docs deploy tests

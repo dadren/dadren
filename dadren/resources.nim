@@ -19,9 +19,7 @@ type
     tilesets*: TilesetManager
   ResourceManager* = ref ResourceManagerObj
 
-proc newResourceManager*(window: WindowPtr,
-                         display: RendererPtr,
-                         tileset_path: string): ResourceManager =
+proc newResourceManager*(window: WindowPtr, display: RendererPtr): ResourceManager =
   new(result)
   result.window = window
   result.display = display

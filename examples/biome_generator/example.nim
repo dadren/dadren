@@ -130,6 +130,8 @@ let templates = parseJson("""
 
 
 type
+  GameSettings = object
+    app: AppSettings
   GameTile* = ref object of Tile
     terrain: Entity
     objects: seq[Entity]
@@ -139,11 +141,6 @@ type
     tilemap: Tilemap[GameTile]
     camera: Camera[GameTile]
     entities: EntityManager
-
-proc newGameTile(terrain: Entity, objects: seq[Entity] = @[]): GameTile =
-  new(result)
-  result.terrain = terrain
-  result.objects = objects
 
 method tile_name*(self: GameTile): string =
   if self.objects.len == 0:
@@ -156,8 +153,8 @@ method tile_name*(self: GameTile): string =
 proc newGameScene(app: App): GameScene =
   var entities = newEntityManager()
   entities.load(templates)
-  app.resources.tilesets.loadPack(app.settings.tilepack_path)
-  let tileset = app.resources.tilesets.get("retrodays")
+  app.resources.tilesets.loadPack("tilepack/tilepack.json")
+  let tileset = app.resources.tilesets.get("biome_tiles")
 
   let
     render_size = app.getLogicalSize()
@@ -214,7 +211,6 @@ proc newGameScene(app: App): GameScene =
   result.camera = newCamera[GameTile](camera_position, camera_size, tileset)
   result.camera.attach(result.tilemap)
 
-converter scancode2uint8(x: Scancode): cint = cint(x)
 converter uint82bool(x: uint8):bool  = bool(x)
 
 method update(self: GameScene, t, dt: float) =
@@ -229,13 +225,13 @@ method update(self: GameScene, t, dt: float) =
   elif keys[SDL_SCANCODE_DOWN.cint]:
     self.camera.move(0, 1)
 
-proc handle_key(gs: GameScene, keysym: KeySym) =
-  case keysym.sym:
-    of K_LEFT: gs.camera.move(-1, 0)
-    of K_RIGHT: gs.camera.move(1, 0)
-    of K_UP: gs.camera.move(0, -1)
-    of K_DOwN: gs.camera.move(0, 1)
-    else: discard
+# proc handle_key(gs: GameScene, keysym: KeySym) =
+#   case keysym.sym:
+#     of K_LEFT: gs.camera.move(-1, 0)
+#     of K_RIGHT: gs.camera.move(1, 0)
+#     of K_UP: gs.camera.move(0, -1)
+#     of K_DOwN: gs.camera.move(0, 1)
+#     else: discard
 
 # method handle(self: GameScene, event: Event) =
 #   case event.kind:
@@ -247,7 +243,8 @@ method draw(self: GameScene) =
   self.camera.render(self.app.display)
 
 let
-  app = newApp("settings.json")
+  settings = to[GameSettings](readFile("settings.json"))
+  app = newApp(settings.app)
   scene = newGameScene(app)
 
 scene.draw()

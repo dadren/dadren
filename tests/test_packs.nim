@@ -9,6 +9,8 @@ from sequtils import toSeq
 from algorithm import sorted
 from os import `/`, createDir, removeDir
 
+echo "packs.nim"
+
 suite "loadPack":
   setup:
     let

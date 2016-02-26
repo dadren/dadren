@@ -2,18 +2,18 @@
 ## ========
 ## A **Tileset** acts as a single registry for accessing tiles by name across two or more NamedAtlases. All included NamedAtlases must have the same partition dimensions. As they are loaded, tiles will overwrite any existing tiles with the same name.
 
-import os
-import tables
-import marshal
 import json
+import marshal
+import os
 import strutils
+import tables
 
 import sdl2
 
-import ./exceptions
-import ./namedatlases
-import ./packs
-import ./utils
+from ./exceptions import NoSuchResourceError
+from ./namedatlases import NamedAtlas, NamedAtlasManager
+from ./namedatlases import newNamedAtlasManager, load, render
+from ./packs import loadPack
 
 type
   AtlasTable = Table[string, NamedAtlas]
@@ -66,13 +66,15 @@ proc loadPack*(tm: TilesetManager, filename: string) =
   ##          "tiles": ["bush", "grass", "tree", "cat-tail"]
   ##        }
   ##    }
-  let pack = loadPack(filename)
+  let
+    pack = loadPack(filename)
+    (path, _, _) = splitFile(filename)
   for name, asset_data in pack:
     let info = to[TilesetInfo]($asset_data)
     var atlases = newSeq[NamedAtlas]()
     for atlas_info in info.atlases:
       let new_atlas = tm.atlases.load(
-        atlas_info.filename, atlas_info.filename,
+        atlas_info.filename, path / atlas_info.filename,
         info.width, info.height,
         atlas_info.tiles,
         info.description, info.authors)

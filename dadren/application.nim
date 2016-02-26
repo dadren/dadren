@@ -22,13 +22,12 @@ import ./scenes
 import ./utils
 
 type
-  AppSettings = object
+  AppSettings* = object
     title*: string
     scale*: float
     vsync: bool
     accelerated: bool
     resolution*: Resolution
-    tilepack_path*: string
   AppObj* = object
     settings*: AppSettings
     resources*: ResourceManager
@@ -44,7 +43,7 @@ proc setLogicalSize(app: App, width, height: cint) =
                                      cint(height.float / app.settings.scale))
 
 proc setLogicalSize(app: App) =
-  if app.settings.resolution.width == -1 and app.settings.resolution.height == -1:
+  if app.settings.resolution.width == 0 and app.settings.resolution.height == 0:
     var dm = DisplayMode()
     discard getCurrentDisplayMode(0, dm)
     app.setLogicalSize(dm.w, dm.h)
@@ -57,37 +56,54 @@ proc getLogicalSize*(app: App): Size =
   app.display.getLogicalSize(width, height)
   (width.int, height.int)
 
-proc getDisplayFlags(settings: AppSettings): cint =
-  if settings.accelerated:
+proc getDisplayFlags(vsync=true, accelerated=true): cint =
+  if vsync:
+    result = result or Renderer_PresentVsync
+
+  if accelerated:
     result = result or Renderer_Accelerated
   else:
     result = result or Renderer_Software
 
-  if settings.vsync:
-    result = result or Renderer_PresentVsync
+proc getDisplayFlags(app: App): cint =
+  getDisplayFlags(app.settings.vsync, app.settings.accelerated)
 
-proc newApp*(settings_filename: string): App =
+proc getCurrentDisplayMode(): DisplayMode =
+  result = DisplayMode()
+  discard getCurrentDisplayMode(0, result)
+
+proc newApp*(settings: AppSettings): App =
   sdl2.init(INIT_EVERYTHING)
-  var dm = DisplayMode()
-  discard getCurrentDisplayMode(0, dm)
+  let dm = getCurrentDisplayMode()
+
+  let
+    width = settings.resolution.width
+    height = settings.resolution.height
+    window_flags = (SDL_WINDOW_SHOWN or
+                    SDL_WINDOW_ALLOW_HIGHDPI or
+                    SDL_WINDOW_RESIZABLE)
+    render_flags = getDisplayFlags(settings.vsync, settings.accelerated)
 
   new(result)
-  result.settings = loadSettings[AppSettings](settings_filename)
-
-  let render_flags = result.settings.getDisplayFlags()
-
-  result.clock = newClock(0.01666666 * 2.0)
+  result.settings = settings
+  result.clock = newClock(1.0 / 60.0)
   result.scenes = newSceneManager()
-  result.window = createWindow(result.settings.title, 0, 0, dm.w, dm.h,
-                               (SDL_WINDOW_SHOWN or
-                                SDL_WINDOW_ALLOW_HIGHDPI or
-                                SDL_WINDOW_RESIZABLE))
+  result.window = createWindow(settings.title, 0, 0, width, height, window_flags)
   result.display = createRenderer(result.window, -1, render_flags)
-  result.resources = newResourceManager(result.window,
-                                        result.display,
-                                        result.settings.tilepack_path)
-  result.setLogicalSize()
+  result.resources = newResourceManager(result.window, result.display)
   result.running = true
+
+  if not (result.settings.scale > 0.0):
+    result.settings.scale = 1.0
+
+  result.setLogicalSize()
+
+proc newApp*(width, height: int, title: string,
+             scale = 1.0, vsync = true, accelerated = true): App =
+  newApp(AppSettings(
+    title:title, scale:scale, vsync:vsync, accelerated:accelerated,
+    resolution:Resolution(width:width, height:height)
+  ))
 
 proc clear*(app: App, r, g, b: uint8) =
   app.display.setDrawColor(r, g, b, 0)

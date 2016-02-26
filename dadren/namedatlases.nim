@@ -2,21 +2,21 @@
 ## ========
 ## A **NamedAtlas**, like an Atlas and Texture, represents raw image data in GPU memory. Like an Atlas, it too provides an even partitioning of the underlying Texture. The NamedAtlas, however, also provides a string-based name for each indexed sub-region allowing for a more semantic interface.
 
-import tables
-import strutils
 import json
 import marshal
+import os
+import strutils
+import tables
 
 from sdl2 import WindowPtr, RendererPtr
 
-from ./packs import loadPack
 from ./atlases import Atlas, AtlasManager, AtlasInfo
-from ./atlases import newAtlasManager, calculateRegionPosition, load, render
+from ./atlases import newAtlasManager, load, render
 from ./exceptions import NoSuchResourceError
+from ./packs import loadPack
 from ./utils import Size
 
 type
-
   NamedAtlasInfo* = object
     ## Meta-data describing a NamedAtlas
     name*: string ## name of the Atlas in an AtlasManager
@@ -30,7 +30,7 @@ type
   NamedAtlas* = ref object
     ## Used for rendering sub-regions of a Texture by name
     info*: NamedAtlasInfo ## meta-data describing the NamedAtlas
-    atlas: Atlas ## Atlas underlying the NamedAtlas
+    atlas*: Atlas ## Atlas underlying the NamedAtlas
 
   NamedAtlasManager* = ref object
     ## Used for loading and managing NamedAtlases
@@ -75,11 +75,13 @@ proc loadPack*(tsm: NamedAtlasManager, filename: string) =
   ##      "width": 32, "height": 32,
   ##      "names": ["dirt", "grass", "stone", "water", "ice"]
   ##    }
-  let pack = loadPack(filename)
+  let
+    pack = loadPack(filename)
+    (path, _, _) = splitFile(filename)
 
   for name, asset_data in pack:
     let info = to[NamedAtlasInfo]($asset_data)
-    discard tsm.load(name, info.filename,
+    discard tsm.load(name, path / info.filename,
                      info.width, info.height, info.names,
                      info.description, info.authors)
 
@@ -89,6 +91,12 @@ proc get*(tmm: NamedAtlasManager, name: string): NamedAtlas =
     let msg = "No atlas with name `" & name & "` is loaded."
     raise newException(NoSuchResourceError, msg)
   tmm.registry[name]
+
+proc getNameIndex*(atlas: NamedAtlas, name: string): int =
+  for i in 0..atlas.info.names.len - 1:
+    if name == atlas.info.names[i]:
+      return i
+  -1
 
 proc render*(display: RendererPtr, atlas: NamedAtlas, name: string, dx, dy: int) =
   ## Render a region from the NamedAtlas to dx, dy

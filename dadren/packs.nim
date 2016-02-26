@@ -34,9 +34,9 @@
 
 ## Once loaded with **loadPack**, a single **ResourcePack** value will be returned containing a single Table mapping resource names to raw JsonNode assets. In the above example the assets are simple strings but they could be an integer, an array or even nested objects. It is up to consumers of ResourcePacks to deal with the resulting JsonNodes.
 
-import tables
 import json
 import strutils
+import tables
 
 from ./utils import merge
 

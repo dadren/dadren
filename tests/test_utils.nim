@@ -2,6 +2,8 @@ import unittest
 
 include ../dadren/utils
 
+echo "utils.nim"
+
 suite "weighted_choice":
   setup:
     var rng = initMersenneTwister(0)
