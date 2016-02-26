@@ -1,11 +1,11 @@
 {
   "assets": {
-    "retrodays": {
+    "biome_tiles": {
       "width": 20,
       "height": 20,
       "atlases": [
         {
-          "filename": "../tilepacks/retrodays/terrain.png",
+          "filename": "terrain.png",
           "tiles": [
             "dirt",
             "snow",
@@ -22,7 +22,7 @@
           ]
         },
         {
-          "filename": "../tilepacks/retrodays/plants.png",
+          "filename": "plants.png",
           "tiles": [
             "little_bluestem",
             "big_bluestem",

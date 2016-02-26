@@ -4,6 +4,7 @@
 
 import json
 import marshal
+import os
 import strutils
 import tables
 
@@ -74,11 +75,13 @@ proc loadPack*(tsm: NamedAtlasManager, filename: string) =
   ##      "width": 32, "height": 32,
   ##      "names": ["dirt", "grass", "stone", "water", "ice"]
   ##    }
-  let pack = loadPack(filename)
+  let
+    pack = loadPack(filename)
+    (path, _, _) = splitFile(filename)
 
   for name, asset_data in pack:
     let info = to[NamedAtlasInfo]($asset_data)
-    discard tsm.load(name, info.filename,
+    discard tsm.load(name, path / info.filename,
                      info.width, info.height, info.names,
                      info.description, info.authors)
 

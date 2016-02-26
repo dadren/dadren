@@ -127,10 +127,12 @@ proc loadPack*(am: AtlasManager, filename: string) =
   ##      "width": 32, "height": 32
   ##    }
 
-  let pack = loadPack(filename)
+  let
+    pack = loadPack(filename)
+    (path, _, _) = splitFile(filename)
   for name, asset_data in pack:
     let info = to[AtlasInfo]($asset_data)
-    discard am.load(name, info.filename,
+    discard am.load(name, path / info.filename,
                     info.width, info.height,
                     info.description, info.authors)
 

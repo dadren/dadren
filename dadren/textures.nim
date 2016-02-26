@@ -93,6 +93,7 @@ proc load*(tm: TextureManager,
            name, filename: string,
            description: string = nil,
            authors: seq[string] = nil): Texture =
+
   if name in tm:
     return tm.registry[name]
 
@@ -122,14 +123,16 @@ proc loadPack*(tm: TextureManager, filename: string) =
   ##      "authors": ["foo", "bar"]
   ##    }
 
-  let pack = loadPack(filename)
+  let
+    pack = loadPack(filename)
+    (path, _, _) = splitFile(filename)
   for name, asset_data in pack:
     var info = to[TextureInfo]($asset_data)
 
-    if info.filename == "":
-      raise newException(ValueError, "Texture assets must specify filename.")
+    if info.filename == "" or info.filename == nil:
+      raise newException(InvalidResourceError, "Texture assets must specify filename.")
 
-    discard tm.load(name, info.filename, info.description, info.authors)
+    discard tm.load(name, path / info.filename, info.description, info.authors)
 
 proc get*(tm: TextureManager, name: string): Texture =
   if not tm.registry.hasKey(name):

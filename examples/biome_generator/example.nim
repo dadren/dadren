@@ -130,6 +130,8 @@ let templates = parseJson("""
 
 
 type
+  GameSettings = object
+    app: AppSettings
   GameTile* = ref object of Tile
     terrain: Entity
     objects: seq[Entity]
@@ -151,8 +153,8 @@ method tile_name*(self: GameTile): string =
 proc newGameScene(app: App): GameScene =
   var entities = newEntityManager()
   entities.load(templates)
-  app.resources.tilesets.loadPack(app.settings.tilepack_path)
-  let tileset = app.resources.tilesets.get("retrodays")
+  app.resources.tilesets.loadPack("tilepack/tilepack.json")
+  let tileset = app.resources.tilesets.get("biome_tiles")
 
   let
     render_size = app.getLogicalSize()
@@ -241,7 +243,8 @@ method draw(self: GameScene) =
   self.camera.render(self.app.display)
 
 let
-  app = newApp("settings.json")
+  settings = to[GameSettings](readFile("settings.json"))
+  app = newApp(settings.app)
   scene = newGameScene(app)
 
 scene.draw()

@@ -66,13 +66,15 @@ proc loadPack*(tm: TilesetManager, filename: string) =
   ##          "tiles": ["bush", "grass", "tree", "cat-tail"]
   ##        }
   ##    }
-  let pack = loadPack(filename)
+  let
+    pack = loadPack(filename)
+    (path, _, _) = splitFile(filename)
   for name, asset_data in pack:
     let info = to[TilesetInfo]($asset_data)
     var atlases = newSeq[NamedAtlas]()
     for atlas_info in info.atlases:
       let new_atlas = tm.atlases.load(
-        atlas_info.filename, atlas_info.filename,
+        atlas_info.filename, path / atlas_info.filename,
         info.width, info.height,
         atlas_info.tiles,
         info.description, info.authors)
