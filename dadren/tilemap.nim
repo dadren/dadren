@@ -56,3 +56,7 @@ proc getTile*(tm: Tilemap, x, y: int): Tile =
     chunk = tm.getChunk(chunk_position)
 
   chunk[tile_position]
+
+proc clear*(tm: Tilemap) =
+  for key in tm.chunks.keys:
+    tm.chunks.del(key)
