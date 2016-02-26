@@ -27,7 +27,7 @@ let
     plants = nam.load("plants", "plants.png",
         width=20,
         height=20,
-        names= @["grass", "tallgrass", "weed", "pine", "bush", "cedar", "oak", "shroom"]
+        names=(@["grass", "tallgrass", "weed", "pine", "bush", "cedar", "oak", "shroom"])
     )
 
 while true:
