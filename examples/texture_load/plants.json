@@ -1,0 +1,23 @@
+{
+    "assets": {
+        "plants": {
+            "width": 20,
+            "height": 20,
+            "atlases": [
+                {
+                    "filename": "plants.png",
+                    "tiles": [
+                        "grass",
+                        "tallgrass",
+                        "weed",
+                        "pine",
+                        "bush",
+                        "cedar",
+                        "oak",
+                        "shroom"
+                    ]
+                }
+            ]
+        }
+    }
+}
