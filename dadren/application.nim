@@ -43,7 +43,7 @@ proc setLogicalSize(app: App, width, height: cint) =
                                      cint(height.float / app.settings.scale))
 
 proc setLogicalSize(app: App) =
-  if app.settings.resolution.width == -1 and app.settings.resolution.height == -1:
+  if app.settings.resolution.width == 0 and app.settings.resolution.height == 0:
     var dm = DisplayMode()
     discard getCurrentDisplayMode(0, dm)
     app.setLogicalSize(dm.w, dm.h)
