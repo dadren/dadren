@@ -1,0 +1,18 @@
+{
+    "assets": {
+        "pong": {
+            "width": 20,
+            "height": 20,
+            "atlases": [
+                {
+                    "filename": "pong.png",
+                    "tiles": [
+                        "ball",
+                        "paddle",
+                        "empty"
+                    ]
+                }
+            ]
+        }
+    }
+}
