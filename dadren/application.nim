@@ -36,7 +36,10 @@ type
     display*: RendererPtr
     clock*: Clock
     running*: bool
+    color*: tuple[r, g, b: int]
   App* = ref AppObj
+
+converter int2uint8(x: int): uint8 = x.uint8
 
 proc setLogicalSize(app: App, width, height: cint) =
   discard app.display.setLogicalSize(cint(width.float / app.settings.scale),
@@ -98,12 +101,15 @@ proc newApp*(settings: AppSettings): App =
 
   result.setLogicalSize()
 
-proc newApp*(width, height: int, title: string,
+proc newApp*(title: string, width = 0, height = 0,
              scale = 1.0, vsync = true, accelerated = true): App =
   newApp(AppSettings(
     title:title, scale:scale, vsync:vsync, accelerated:accelerated,
     resolution:Resolution(width:width, height:height)
   ))
+
+proc newApp*(): App =
+  newApp(AppSettings(title:""))
 
 proc clear*(app: App, r, g, b: uint8) =
   app.display.setDrawColor(r, g, b, 0)
@@ -131,7 +137,7 @@ proc handleEvents(app: App) =
 proc drawFrame(app: App) =
   # app.display.setRenderTarget(nil) # set window as render target
   # app.setLogicalSize() # configure the logical render size (output scaling)
-  # app.clear(0, 0, 0)
+  app.clear(app.color.r, app.color.g, app.color.b)
   app.scenes.current.draw()
   app.display.present
 
