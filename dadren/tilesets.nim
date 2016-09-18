@@ -81,7 +81,7 @@ proc loadPack*(tm: TilesetManager, filename: string) =
       atlases.add(new_atlas)
     tm.registry[name] = Tileset(info:info, atlases:atlases)
 
-proc get*(tm: TilesetManager, name): Tileset =
+proc get*(tm: TilesetManager, name: string): Tileset =
   if not tm.registry.hasKey(name):
     let msg = "No Tileset with name `$1` is loaded."
     raise newException(NoSuchResourceError, msg.format(name))

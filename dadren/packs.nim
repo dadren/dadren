@@ -54,8 +54,8 @@ proc toTable(node: JsonNode): ResourcePack =
     raise newException(ValueError, msg)
 
   var t = initTable[string, JsonNode]()
-  for field in node.getFields():
-    t[field.key] = field.val
+  for key, value in node.getFields():
+    t[key] = value
 
   cast[ResourcePack](t)
 

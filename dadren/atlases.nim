@@ -89,7 +89,7 @@ proc calculateRegionPosition(atlas: Atlas, index: int): tuple[x, y: int] =
   calculateRegionPosition(index, atlas.width)
 
 proc calculatePixelPosition(region_x, region_y,
-                             region_width, region_height): tuple[x, y: int] =
+                             region_width, region_height: int): tuple[x, y: int] =
   (x: region_x *% region_width, y: region_y *% region_height)
 
 proc load*(am: AtlasManager,

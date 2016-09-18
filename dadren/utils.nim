@@ -17,8 +17,7 @@ converter int2cint*(x: int): cint = x.cint
 converter uint2int*(x: uint): int = x.int
 converter int2uint*(x: int): uint = x.uint
 
-proc weighted_choice*[T](options: seq[(int, T)],
-                         rng: var MersenneTwister = mersenneTwisterInst): T =
+proc weighted_choice*[T](options: seq[(int, T)]): T =
   ## Return a T from a seq[(int, T)] where the first item in each tuple specifies a
   ## relative likelyhood, or weight, of that item being selected.
 
@@ -34,7 +33,7 @@ proc weighted_choice*[T](options: seq[(int, T)],
   for pair in options:
     sum += pair[0]
 
-  var val = rng.randomInt(1, sum + 1)
+  var val = 1 + random(sum - 1)
 
   for pair in options:
     val -= pair[0]
