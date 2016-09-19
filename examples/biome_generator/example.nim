@@ -1,3 +1,6 @@
+when compileOption("profiler"):
+  import nimprof
+
 import future
 import tables
 import json
