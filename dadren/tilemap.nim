@@ -20,13 +20,13 @@ proc newTilemap*[T](chunk_size: Size, generator: Generator[T]): Tilemap[T] =
   result.chunks = initTable[Point, Chunk]()
 
 proc makeChunk*[T](map: Tilemap[T], pos: Point, size: Size): Chunk =
-  result = newChunk()
+  result = newChunk(size.w * size.h)
   let
     tx = pos.x * size.w
     ty = pos.y * size.h
-  for x in 0..size.w:
-    for y in 0..size.h:
-      result.add((x, y), `()`(map.generator, tx + x, ty + y))
+  for x in 0..size.w - 1:
+    for y in 0..size.h - 1:
+      result[x + y * size.w] = `()`(map.generator, tx + x, ty + y)
 
 proc getChunk(tm: Tilemap, pos: Point): Chunk =
   if pos notin tm.chunks:
@@ -55,7 +55,7 @@ proc getTile*(tm: Tilemap, x, y: int): Tile =
     tile_position = tm.tilePosition(x, y)
     chunk = tm.getChunk(chunk_position)
 
-  chunk[tile_position]
+  chunk[tile_position.x + tile_position.y * tm.chunk_size.w]
 
 proc clear*(tm: Tilemap) =
   for key in tm.chunks.keys:
