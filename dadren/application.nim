@@ -135,8 +135,6 @@ proc handleEvents(app: App) =
         app.scenes.current.handle(event)
 
 proc drawFrame(app: App) =
-  # app.display.setRenderTarget(nil) # set window as render target
-  # app.setLogicalSize() # configure the logical render size (output scaling)
   app.clear(app.color.r, app.color.g, app.color.b)
   app.scenes.current.draw()
   app.display.present

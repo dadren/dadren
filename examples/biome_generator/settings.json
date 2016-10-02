@@ -1,5 +1,8 @@
 {
   "app": {
-    "title": "Biome Generation",
+      "title": "Biome Generation",
+      "accelerated": true,
+      "vsync": true,
+      "scale": 2.0
   },
 }
